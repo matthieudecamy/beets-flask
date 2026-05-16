@@ -1,0 +1,142 @@
+# Genre hierarchy. Each key is a genre; its children are more specific sub-genres.
+# Null (~) marks a leaf with no sub-genres defined yet.
+#
+# When a track is tagged with a sub-genre, the plugin automatically
+# expands it to include all ancestors. For example, "Plugg" -> "Hip-Hop, Trap, Plugg".
+
+tree:
+  Hip-Hop:
+    Trap:
+      Plugg: ~
+      "Mumble Rap": ~
+      "SoundCloud Rap": ~
+      "Phonk": ~
+      Drill:
+        "UK Drill": ~
+        "Brooklyn Drill": ~
+    "Boom Bap": ~
+    "Lo-Fi Hip-Hop": ~
+    "G-Funk": ~
+    Crunk: ~
+    "Conscious Hip-Hop": ~
+
+  Electronic:
+    House:
+      "Deep House": ~
+      "Tech House": ~
+      "Future House": ~
+      "Afro House": ~
+    Techno: ~
+    "Drum and Bass":
+      Jungle: ~
+    Ambient: ~
+    "Trip-Hop": ~
+    IDM: ~
+    Trance:
+      "Progressive Trance": ~
+    Dubstep:
+      Brostep: ~
+    "Synth-Pop": ~
+
+  Rock:
+    "Indie Rock": ~
+    "Alternative Rock": ~
+    "Post-Punk": ~
+    "Post-Rock": ~
+    Metal:
+      "Heavy Metal": ~
+      "Black Metal": ~
+      "Death Metal": ~
+      "Doom Metal": ~
+
+  Pop:
+    "Indie Pop": ~
+    "Dream Pop": ~
+    "Art Pop": ~
+    "Synth-Pop": ~
+
+  R&B:
+    "Neo-Soul": ~
+
+  Soul: ~
+
+  Funk: ~
+
+  Jazz:
+    Bebop: ~
+    "Free Jazz": ~
+    "Jazz Fusion": ~
+
+  Classical: ~
+
+  Folk:
+    "Indie Folk": ~
+    Country:
+      "Alt-Country": ~
+
+# Normalization aliases. Maps common Last.fm tag variants to the canonical
+# genre names defined in the tree above. All keys must be lowercase.
+
+aliases:
+  "hip hop": "Hip-Hop"
+  "trap": "Trap"
+  "drill": "Drill"
+  "boom bap": "Boom Bap"
+  "gangsta": "Hip-Hop"
+  "hardcore hip-hop": "Hip-Hop"
+  "jazzy hip-hop": "Hip-Hop"
+  "ragga hip-hop": "Hip-Hop"
+  "funk / soul": "Funk"
+  "funk/soul": "Funk"
+  "folk, world, & country": "Folk"
+  "folk world & country": "Folk"
+  "rap": "Hip-Hop"
+  "hip-hop": "Hip-Hop"
+  "hiphop": "Hip-Hop"
+  "rap/hip-hop": "Hip-Hop"
+  "gangsta rap": "Hip-Hop"
+  "southern hip hop": "Hip-Hop"
+  "trap music": "Trap"
+  "phonk music": "Phonk"
+  "electronic music": "Electronic"
+  "electronica": "Electronic"
+  "electro": "Electronic"
+  "edm": "Electronic"
+  "electronic dance music": "Electronic"
+  "rnb": "R&B"
+  "r and b": "R&B"
+  "rhythm and blues": "R&B"
+  "dnb": "Drum and Bass"
+  "drum & bass": "Drum and Bass"
+  "d&b": "Drum and Bass"
+  "synth pop": "Synth-Pop"
+  "synthpop": "Synth-Pop"
+  "indie": "Indie Rock"
+  "alternative": "Alternative Rock"
+  "alt rock": "Alternative Rock"
+  "alt-rock": "Alternative Rock"
+  "lofi hip hop": "Lo-Fi Hip-Hop"
+  "lo fi hip hop": "Lo-Fi Hip-Hop"
+  "lo-fi hip-hop": "Lo-Fi Hip-Hop"
+  "lofi": "Lo-Fi Hip-Hop"
+  "lo fi": "Lo-Fi Hip-Hop"
+  "lo-fi": "Lo-Fi Hip-Hop"
+  "post punk": "Post-Punk"
+  "neo soul": "Neo-Soul"
+  "jazz fusion": "Jazz Fusion"
+  "free jazz": "Free Jazz"
+  "deep house": "Deep House"
+  "tech house": "Tech House"
+  "country music": "Country"
+  "alt country": "Alt-Country"
+  "indie folk": "Indie Folk"
+  "indie pop": "Indie Pop"
+  "dream pop": "Dream Pop"
+  "art pop": "Art Pop"
+  "conscious rap": "Conscious Hip-Hop"
+  "conscious hiphop": "Conscious Hip-Hop"
+  "g funk": "G-Funk"
+  "uk drill": "UK Drill"
+  "brooklyn drill": "Brooklyn Drill"
+  "mumble rap": "Mumble Rap"
+  "soundcloud rap": "SoundCloud Rap"

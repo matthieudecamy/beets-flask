@@ -1,0 +1,102 @@
+plugins: [
+        info,
+        the,
+        fetchart,
+        embedart,
+        ftintitle,
+        lastgenre,
+        genreexpand,
+        missing,
+        albumtypes,
+        scrub,
+        zero,
+        mbsync,
+        duplicates,
+        convert,
+        fromfilename,
+        inline,
+        edit,
+        musicbrainz,
+    ]
+
+pluginpath:
+    - /config/beets
+
+directory: /volume1/docker/Music/Music
+# library: /config/beets/library.db # default location in the container
+
+import:
+    move: no
+    copy: yes
+    write: yes
+    log: /volume1/docker/Music/last_beets_imports.log
+    quiet_fallback: skip
+    detail: yes
+    duplicate_action: ask # ask|skip|merge|keep|remove
+
+ui:
+    color: yes
+
+# fix up output file paths
+replace:
+    '[\\]': ""
+    "[_]": "-"
+    "[/]": "-"
+    '^\.+': ""
+    '[\x00-\x1f]': ""
+    '[<>:"\?\*\|]': ""
+    '\.$': ""
+    '\s+$': ""
+    '^\s+': ""
+    "^-": ""
+    "'": ""
+    "′": ""
+    "″": ""
+    "‐": "-"
+
+per_disc_numbering: no
+asciify_paths: yes
+
+threaded: no
+
+fetchart:
+    minwidth: 500
+    enforce_ratio: 10px
+    sources: coverart filesystem itunes amazon albumart fanarttv
+
+embedart:
+    auto: yes
+    ifempty: yes
+    remove_art_file: yes
+
+ftintitle:
+    auto: yes
+    format: (feat. {0})
+
+lastgenre:
+    auto: yes
+    count: 4
+    prefer_specific: yes
+    force: yes
+    source: track
+    separator: ", "
+    fallback: ""
+
+genreexpand:
+    genres_file: /config/beets/genres.yaml
+    separator: ", "
+
+match:
+    strong_rec_thresh: 0.1
+    distance_weights:
+        data_source: 0.0
+        missing_tracks: 0.2
+
+musicbrainz:
+    external_ids:
+        discogs: yes
+        bandcamp: yes
+        spotify: yes
+        deezer: yes
+        beatport: yes
+        tidal: yes
