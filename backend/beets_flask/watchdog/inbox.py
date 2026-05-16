@@ -11,6 +11,7 @@ from beets_flask import invoker
 from beets_flask.config import get_config
 from beets_flask.database.models.states import SessionStateInDb
 from beets_flask.disk import (
+    _matches_patterns,
     album_folders_from_track_paths,
     all_album_folders,
     fs_item_from_path,
@@ -87,10 +88,14 @@ def register_inboxes(timeout: float = 2.5, debounce: float = 30) -> AIOWatchdog 
         await auto_tag(f)
 
     auto_inboxes = [i for i in _inboxes if i.get("autotag", None)]
+    ignore_globs = get_config()["gui"]["inbox"]["ignore"].get(list, [])
 
     for inbox in auto_inboxes:
         album_folders = all_album_folders(inbox["path"])
         for f in album_folders:
+            if any(_matches_patterns(part, ignore_globs) for part in f.parts):
+                log.debug(f"Watchdog: Skipping ignored path {f}")
+                continue
             asyncio.create_task(auto_tag_wait_for_workers(f))
 
     return watchdog
@@ -157,6 +162,11 @@ async def auto_tag(folder_path: Path, inbox_kind: str | None = None):
     inbox = get_inbox_for_path(folder_path)
     if inbox is None:
         log.error(f"Path {folder_path} is not in any inbox, skipping autotagging.")
+        return
+
+    ignore_globs = get_config()["gui"]["inbox"]["ignore"].get(list, [])
+    if any(_matches_patterns(part, ignore_globs) for part in folder_path.parts):
+        log.debug(f"Path {folder_path} is in an ignored directory, skipping autotagging.")
         return
 
     if inbox_kind is None:
