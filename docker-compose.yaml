@@ -1,6 +1,7 @@
 services:
     beets-flask:
         image: shlagi-tagger:latest
+        container_name: shlagi-tagger
         restart: unless-stopped
         ports:
             - "5006:5001"
