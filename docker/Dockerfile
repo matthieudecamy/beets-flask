@@ -1,4 +1,4 @@
-FROM python:3.11-alpine3.20 AS base
+FROM python:3.11-alpine3.21 AS base
 
 FROM base AS deps
 
