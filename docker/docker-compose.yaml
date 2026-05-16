@@ -1,6 +1,6 @@
 services:
     beets-flask:
-        image: pspitzner/beets-flask:stable
+        image: shlagi-tagger:latest
         restart: unless-stopped
         ports:
             - "5006:5001"
