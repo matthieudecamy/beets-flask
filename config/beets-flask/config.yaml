@@ -1,11 +1,13 @@
 gui:
-    num_preview_workers: 4
+    num_preview_workers: 4 # how many previews to generate in parallel
 
     library:
+        # Use to split artists in the library view if using multiple artists in a field.
+        # Set to an empty list to disable this feature.
         artist_separators: [",", ";", "&"]
 
     terminal:
-        start_path: "/volume1/docker/Music/MusicToTag"
+        start_path: "/music/inbox" # the directory where to start new terminal sessions
 
     inbox:
         ignore:
@@ -14,7 +16,8 @@ gui:
             - ".*"
             - "*~"
         folders:
-            Inbox:
+            Inbox1:
                 name: "Inbox"
-                path: /volume1/docker/Music/MusicToTag
-                autotag: preview
+                path: "/volume1/docker/Music/MusicToTag"
+                autotag: "preview"
+                # trigger tag but do not import, recommended for most control
