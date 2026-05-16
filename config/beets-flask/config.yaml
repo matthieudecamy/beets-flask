@@ -1,0 +1,20 @@
+gui:
+    num_preview_workers: 4
+
+    library:
+        artist_separators: [",", ";", "&"]
+
+    terminal:
+        start_path: "/volume1/docker/Music/MusicToTag"
+
+    inbox:
+        ignore:
+            - "@eaDir"
+            - "@SynoEAStream"
+            - ".*"
+            - "*~"
+        folders:
+            Inbox:
+                name: "Inbox"
+                path: /volume1/docker/Music/MusicToTag
+                autotag: preview
