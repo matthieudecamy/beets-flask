@@ -7,7 +7,7 @@ variants via the aliases section of that file.
 
 Flex attributes written to each item/album:
   genre_pre_expand  — genre string as returned by lastgenre, before expansion
-  genre_warnings    — comma-separated list of genres not found in genres.yaml
+  genre_unrecognized — comma-separated list of genres not found in genres.yaml
 """
 
 import yaml
@@ -118,7 +118,7 @@ class GenreExpandPlugin(BeetsPlugin):
         pre_expand = obj.genre
         obj.genre, unknown = self._expand(obj.genre, context)
         obj.genre_pre_expand = pre_expand
-        obj.genre_warnings = ", ".join(unknown) if unknown else ""
+        obj.genre_unrecognized = ", ".join(unknown) if unknown else ""
         obj.store()
 
     # ------------------------------------------------------------------
@@ -132,7 +132,7 @@ class GenreExpandPlugin(BeetsPlugin):
         # inherited by beets via album.store(), but flex attrs are not)
         for item in album.items():
             item.genre_pre_expand = album.genre_pre_expand
-            item.genre_warnings = album.genre_warnings
+            item.genre_unrecognized = album.genre_unrecognized
             item.store()
 
     def on_item_imported(self, lib, item):
