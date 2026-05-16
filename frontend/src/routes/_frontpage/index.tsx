@@ -116,7 +116,7 @@ function Hero() {
                     }}
                     fontWeight={600}
                 >
-                    Beets-flask
+                    Shlagi Tagger
                 </Typography>
                 <Box
                     sx={{

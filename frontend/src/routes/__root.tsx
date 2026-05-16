@@ -24,7 +24,7 @@ export const Route = createRootRouteWithContext<{
                     'Opinionated web-interface around the music organizer beets.',
             },
             {
-                title: 'Beets',
+                title: 'Shlagi Tagger',
             },
         ],
         links: [
