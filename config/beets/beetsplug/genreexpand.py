@@ -4,6 +4,10 @@ After lastgenre writes a genre (e.g. "Plugg"), this plugin walks up the
 tree defined in genres.yaml and rewrites the tag with all ancestors included
 (e.g. "Hip-Hop, Trap, Plugg"). It also normalises common Last.fm tag
 variants via the aliases section of that file.
+
+Flex attributes written to each item/album:
+  genre_pre_expand  — genre string as returned by lastgenre, before expansion
+  genre_warnings    — comma-separated list of genres not found in genres.yaml
 """
 
 import yaml
@@ -80,11 +84,16 @@ class GenreExpandPlugin(BeetsPlugin):
         return list(reversed(chain))
 
     def _expand(self, genre_str, context):
-        """Normalise and expand a comma-separated genre string."""
+        """Normalise and expand a comma-separated genre string.
+
+        Returns (expanded_str, unknown_genres) where unknown_genres is a list
+        of genre names that were not found in genres.yaml.
+        """
         self._load()
         separator = self.config["separator"].get(str)
         seen = set()
         result = []
+        unknown = []
         for raw in genre_str.split(","):
             canonical = self._normalize(raw)
             if not self._is_known(canonical):
@@ -93,11 +102,24 @@ class GenreExpandPlugin(BeetsPlugin):
                     "re-import to get hierarchy expansion",
                     canonical, context,
                 )
+                unknown.append(canonical)
             for g in self._ancestors(canonical):
                 if g.lower() not in seen:
                     seen.add(g.lower())
                     result.append(g)
-        return separator.join(result) if result else genre_str
+        expanded = separator.join(result) if result else genre_str
+        return expanded, unknown
+
+    def _apply(self, obj, context):
+        """Expand genre on a beets Item or Album, storing flex attributes."""
+        if not obj.genre:
+            self._log.warning("No genre found for {}", context)
+            return
+        pre_expand = obj.genre
+        obj.genre, unknown = self._expand(obj.genre, context)
+        obj.genre_pre_expand = pre_expand
+        obj.genre_warnings = ", ".join(unknown) if unknown else ""
+        obj.store()
 
     # ------------------------------------------------------------------
     # Event handlers
@@ -105,16 +127,14 @@ class GenreExpandPlugin(BeetsPlugin):
 
     def on_album_imported(self, lib, album):
         context = "{} - {}".format(album.albumartist, album.album)
-        if not album.genre:
-            self._log.warning("No genre found for {}", context)
-            return
-        album.genre = self._expand(album.genre, context)
-        album.store()
+        self._apply(album, context)
+        # Propagate flex attributes to individual tracks (genre itself is
+        # inherited by beets via album.store(), but flex attrs are not)
+        for item in album.items():
+            item.genre_pre_expand = album.genre_pre_expand
+            item.genre_warnings = album.genre_warnings
+            item.store()
 
     def on_item_imported(self, lib, item):
         context = "{} - {}".format(item.artist, item.title)
-        if not item.genre:
-            self._log.warning("No genre found for {}", context)
-            return
-        item.genre = self._expand(item.genre, context)
-        item.store()
+        self._apply(item, context)
