@@ -151,7 +151,6 @@ WORKDIR /repo
 COPY --from=build /repo/frontend/dist /repo/frontend/dist
 COPY --from=build /version /version
 COPY docker/entrypoints .
-RUN sed -i 's/\r//' /repo/*.sh
 RUN chown -R beetle:beetle /repo
 
 USER root
