@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 import subprocess
@@ -9,8 +10,12 @@ from dataclasses import dataclass
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import (
+    TYPE_CHECKING,
     Literal,
 )
+
+if TYPE_CHECKING:
+    from beets_flask.database.models.stats import CachedStatInDb
 
 from beets.importer import (
     ArchiveImportTask,
@@ -427,9 +432,8 @@ def is_within_multi_dir(path: Path | str) -> bool:
     return False
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60), info=True)
-def dir_size(path: Path) -> int:
-    """Size of a dir in bytes, including content."""
+def _dir_size_subprocess(path: Path) -> int:
+    """Run ``du -sb`` and return bytes. Uncached."""
     try:
         result = subprocess.run(
             ["du", "-sb", str(path.resolve())],
@@ -437,17 +441,15 @@ def dir_size(path: Path) -> int:
             text=True,
             check=True,
         )
-        size = int(result.stdout.split()[0])
-        return size
+        return int(result.stdout.split()[0])
     except Exception as e:
         # this happens e.g. if the directory does not exist.
         log.error(e)
         return -1
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60), info=True)
-def dir_files(path: Path) -> int:
-    """Count the number of files in a directory."""
+def _dir_files_subprocess(path: Path) -> int:
+    """Run ``find | wc -l`` and return count. Uncached."""
     try:
         result = subprocess.run(
             [f"find {str(path.resolve())} | wc -l"],
@@ -456,19 +458,89 @@ def dir_files(path: Path) -> int:
             check=True,
             shell=True,
         )
-        count = int(result.stdout)
-        return count
+        return int(result.stdout)
     except Exception as e:
         # this happens e.g. if the directory does not exist.
         log.error(e)
         return -1
 
 
+@cached(cache=TTLCache(maxsize=1024, ttl=60), info=True)
+def dir_size(path: Path) -> int:
+    """Size of a dir in bytes, including content.
+
+    Cached for 60 s. Prefer :func:`get_cached_dir_stats` for hot paths —
+    it reads a pre-computed value from the database instead of running a
+    subprocess on every cache miss.
+    """
+    return _dir_size_subprocess(path)
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60), info=True)
+def dir_files(path: Path) -> int:
+    """Count the number of files in a directory.
+
+    Cached for 60 s. Prefer :func:`get_cached_dir_stats` for hot paths.
+    """
+    return _dir_files_subprocess(path)
+
+
 def clear_cache():
-    """Clear the cache for all cached functions."""
+    """Clear the directory-tree cache.
+
+    Only clears :func:`path_to_folder` so that the inbox tree view stays
+    current after filesystem changes.  The ``dir_size`` / ``dir_files``
+    TTL caches are left alone — those are now fallbacks only; the
+    authoritative values live in the ``cached_stats`` DB table and are
+    updated by :func:`compute_and_store_dir_stats`.
+    """
     path_to_folder.cache.clear()  # type: ignore
-    dir_size.cache.clear()  # type: ignore
-    dir_files.cache.clear()  # type: ignore
 
 
-__all__ = ["dir_size", "fs_item_from_path"]
+# ---------------------------------------------------------------------------
+# DB-backed stats helpers
+# ---------------------------------------------------------------------------
+
+
+async def compute_and_store_dir_stats(path: Path) -> CachedStatInDb:
+    """Compute dir size + file count and persist to the database.
+
+    Runs the subprocess calls in a thread so the async event loop is not
+    blocked.  Call this from the watchdog (after debounce) and from import
+    workers after a successful import so that the stats endpoints always
+    return a pre-computed value.
+
+    Parameters
+    ----------
+    path:
+        Directory to measure.  Will be resolved to an absolute path.
+    """
+    from beets_flask.database.models.stats import CachedStatInDb
+    from beets_flask.database.setup import db_session_factory
+
+    resolved = path.resolve()
+    size = await asyncio.to_thread(_dir_size_subprocess, resolved)
+    n_files = await asyncio.to_thread(_dir_files_subprocess, resolved)
+
+    stat = CachedStatInDb(path=resolved, size_bytes=size, n_files=n_files)
+    with db_session_factory() as session:
+        session.merge(stat)
+
+    log.debug(f"compute_and_store_dir_stats: {resolved} size={size} n_files={n_files}")
+    return stat
+
+
+def get_cached_dir_stats(path: Path) -> CachedStatInDb | None:
+    """Return the most recently stored stats for *path*, or ``None``."""
+    from beets_flask.database.models.stats import CachedStatInDb
+    from beets_flask.database.setup import db_session_factory
+
+    with db_session_factory() as session:
+        row = session.get(CachedStatInDb, str(path.resolve()))
+        if row is not None:
+            # Ensure attributes are loaded while the session is still open
+            _ = row.size_bytes, row.n_files, row.computed_at
+        return row
+
+
+__all__ = ["dir_size", "fs_item_from_path", "compute_and_store_dir_stats", "get_cached_dir_stats"]

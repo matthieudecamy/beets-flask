@@ -14,6 +14,7 @@ from beets_flask.disk import (
     _matches_patterns,
     album_folders_from_track_paths,
     all_album_folders,
+    compute_and_store_dir_stats,
     fs_item_from_path,
 )
 from beets_flask.invoker import enqueue
@@ -98,6 +99,10 @@ def register_inboxes(timeout: float = 2.5, debounce: float = 30) -> AIOWatchdog 
                 continue
             asyncio.create_task(auto_tag_wait_for_workers(f))
 
+    # Pre-compute stats for all inboxes so the home page is fast on first load.
+    for inbox in _inboxes:
+        asyncio.create_task(compute_and_store_dir_stats(Path(inbox["path"])))
+
     return watchdog
 
 
@@ -147,6 +152,16 @@ class InboxHandler(AIOEventHandler):
             await auto_tag(album_folder)
         except Exception as e:
             log.exception(f"Error in inbox handler task for {album_folder}", e)
+
+        # Refresh the cached stats for the inbox that contains this album so
+        # the home page reflects the current file count / size without running
+        # an expensive subprocess on every request.
+        inbox = get_inbox_for_path(album_folder)
+        if inbox:
+            try:
+                await compute_and_store_dir_stats(Path(inbox["path"]))
+            except Exception as e:
+                log.exception(f"Error computing stats for inbox {inbox['path']}", e)
 
 
 async def auto_tag(folder_path: Path, inbox_kind: str | None = None):

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, TypedDict, cast
 from quart import Blueprint, g, jsonify
 
 from beets_flask.config import get_config
-from beets_flask.disk import dir_size
+from beets_flask.disk import dir_size, get_cached_dir_stats
 
 if TYPE_CHECKING:
     # For type hinting the global g object
@@ -52,7 +52,12 @@ async def stats():
         "artists": album_stats[0][3],
         "genres": album_stats[0][1],
         "labels": album_stats[0][2],
-        "size": dir_size(Path(lib_path)),
+        "size": (
+            cached.size_bytes
+            if (cached := get_cached_dir_stats(Path(lib_path))) is not None
+            and cached.size_bytes is not None
+            else dir_size(Path(lib_path))
+        ),
         "lastItemAdded": (
             round(items_stats[0][1] * 1000) if items_stats[0][1] is not None else None
         ),
