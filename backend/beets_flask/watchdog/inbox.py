@@ -88,7 +88,7 @@ def register_inboxes(timeout: float = 2.5, debounce: float = 30) -> AIOWatchdog 
         await auto_tag(f)
 
     auto_inboxes = [i for i in _inboxes if i.get("autotag", None)]
-    ignore_globs = get_config()["gui"]["inbox"]["ignore"].get(list, [])
+    ignore_globs = get_config().ignore_globs
 
     for inbox in auto_inboxes:
         album_folders = all_album_folders(inbox["path"])
@@ -164,7 +164,7 @@ async def auto_tag(folder_path: Path, inbox_kind: str | None = None):
         log.error(f"Path {folder_path} is not in any inbox, skipping autotagging.")
         return
 
-    ignore_globs = get_config()["gui"]["inbox"]["ignore"].get(list, [])
+    ignore_globs = get_config().ignore_globs
     if any(_matches_patterns(part, ignore_globs) for part in folder_path.parts):
         log.debug(f"Path {folder_path} is in an ignored directory, skipping autotagging.")
         return
