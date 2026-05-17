@@ -54,6 +54,10 @@ replace:
     "″": ""
     "‐": "-"
 
+types:
+    genre_pre_expand: string
+    genre_unrecognized: string
+
 per_disc_numbering: no
 asciify_paths: yes
 
