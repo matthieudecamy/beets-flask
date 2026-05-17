@@ -1,5 +1,6 @@
 from .base import Base
 from .states import CandidateStateInDb, FolderInDb, SessionStateInDb, TaskStateInDb
+from .stats import CachedStatInDb
 
 __all__ = [
     "Base",
@@ -7,4 +8,5 @@ __all__ = [
     "SessionStateInDb",
     "TaskStateInDb",
     "CandidateStateInDb",
+    "CachedStatInDb",
 ]

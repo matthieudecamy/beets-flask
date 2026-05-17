@@ -16,6 +16,7 @@ from beets_flask.disk import (
     dir_files,
     dir_size,
     fs_item_from_path,
+    get_cached_dir_stats,
     path_to_folder,
 )
 from beets_flask.importer.progress import Progress
@@ -281,11 +282,23 @@ def compute_stats(folder: str):
         )
         last_created = session.execute(stmt).scalars().first()
 
+    cached = get_cached_dir_stats(p)
+    n_files = (
+        cached.n_files
+        if cached is not None and cached.n_files is not None
+        else dir_files(p)
+    )
+    size = (
+        cached.size_bytes
+        if cached is not None and cached.size_bytes is not None
+        else dir_size(p)
+    )
+
     ret_map: InboxStats = {
         "name": inbox["name"],
         "path": inbox["path"],
-        "nFiles": dir_files(p),
-        "size": dir_size(p),
+        "nFiles": n_files,
+        "size": size,
         "tagged_via_gui": n_tagged,
         "imported_via_gui": n_imported,
         "last_created": last_created,

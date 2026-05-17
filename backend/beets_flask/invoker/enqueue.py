@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
@@ -17,6 +18,7 @@ from sqlalchemy.orm import Session
 
 from beets_flask.config import get_config
 from beets_flask.database import db_session_factory
+from beets_flask.disk import compute_and_store_dir_stats
 from beets_flask.database.models.states import (
     FolderInDb,
     SessionState,
@@ -539,6 +541,10 @@ async def run_import_candidate(
             db_session.merge(instance=s_state_indb)
             db_session.commit()
 
+    # Refresh cached library size so the home page reflects the new import.
+    lib_path = Path(get_config()["directory"].get(str))
+    await compute_and_store_dir_stats(lib_path)
+
     log.info(f"Import candidate done. {hash=} {path=}")
 
 
@@ -568,6 +574,10 @@ async def run_import_auto(
             db_session.merge(instance=s_state_indb)
             db_session.commit()
 
+    # Refresh cached library size so the home page reflects the new import.
+    lib_path = Path(get_config()["directory"].get(str))
+    await compute_and_store_dir_stats(lib_path)
+
     log.info(f"Auto Import done. {hash=} {path=}")
 
 
@@ -591,6 +601,10 @@ async def run_import_bootleg(hash: str, path: str):
             s_state_indb = SessionStateInDb.from_live_state(i_session.state)
             db_session.merge(instance=s_state_indb)
             db_session.commit()
+
+    # Refresh cached library size so the home page reflects the new import.
+    lib_path = Path(get_config()["directory"].get(str))
+    await compute_and_store_dir_stats(lib_path)
 
     log.info(f"Bootleg Import done. {hash=} {path=}")
 
