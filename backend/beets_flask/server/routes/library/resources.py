@@ -701,10 +701,14 @@ def _repr_Item(item: Item | None, minimal=False) -> ItemResponse | ItemResponseM
         out["sources"] = sources
 
     for key in keys:
-        if key == "name":
-            out[key] = item.title
-        else:
-            out[key] = item[key]
+        try:
+            if key == "name":
+                out[key] = item.title
+            else:
+                out[key] = item[key]
+        except AttributeError:
+            # Flex fields registered in config but not stored on this item
+            continue
 
         # Format path
         if key == "path":
@@ -849,10 +853,14 @@ def _rep_Album(
                     )
 
     for key in keys:
-        if key == "name":
-            out[key] = album.album
-        else:
-            out[key] = album[key]
+        try:
+            if key == "name":
+                out[key] = album.album
+            else:
+                out[key] = album[key]
+        except AttributeError:
+            # Flex fields registered in config but not stored on this album
+            continue
 
         # Format path
         if key == "path":
