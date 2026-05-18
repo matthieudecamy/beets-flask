@@ -518,7 +518,11 @@ class CandidateState(BaseState):
             # before import the keys are in _dirty,
             # after import in _fields
             for key in list(item._dirty) + list(item._fields):
-                val = getattr(item, key)
+                try:
+                    val = getattr(item, key)
+                except AttributeError:
+                    # Flex fields registered in config but not stored on this item
+                    continue
                 if val is not None and val != "":
                     kwargs[key] = val
             # tracks use index, items use track, and beets diff preview crashes without index

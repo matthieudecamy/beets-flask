@@ -666,9 +666,12 @@ def _repr_Item(item: Item | None, minimal=False) -> ItemResponse | ItemResponseM
             ]
             extras = {}
             for k in keys_extra:
-                if __is_empty(item[k]):
+                try:
+                    if __is_empty(item[k]):
+                        continue
+                    extras[__normalize_id_key(prefix, k)] = item[k]
+                except AttributeError:
                     continue
-                extras[__normalize_id_key(prefix, k)] = item[k]
 
             if len(extras) > 0:
                 source["extra"] = extras
@@ -828,9 +831,12 @@ def _rep_Album(
             keys_extra = [k for k in f_keys if k not in [album_id_key, artist_id_key]]
             extras = {}
             for k in keys_extra:
-                if __is_empty(album[k]):
+                try:
+                    if __is_empty(album[k]):
+                        continue
+                    extras[__normalize_id_key(prefix, k)] = album[k]
+                except AttributeError:
                     continue
-                extras[__normalize_id_key(prefix, k)] = album[k]
 
             if len(extras) > 0:
                 source["extra"] = extras
