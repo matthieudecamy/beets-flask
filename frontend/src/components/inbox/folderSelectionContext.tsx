@@ -18,6 +18,7 @@ export interface FolderSelectionContext {
 
 const FoldersContext = createContext<FolderSelectionContext | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useFolderSelectionContext() {
     const context = useContext(FoldersContext);
     if (!context) {

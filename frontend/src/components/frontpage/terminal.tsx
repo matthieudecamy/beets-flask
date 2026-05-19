@@ -287,6 +287,7 @@ export function TerminalContextProvider({
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTerminalContext() {
     const context = React.useContext(TerminalContext);
 

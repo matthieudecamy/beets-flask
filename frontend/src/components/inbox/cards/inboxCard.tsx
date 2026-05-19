@@ -47,6 +47,7 @@ export interface InboxCardContext {
 
 const InboxCardContext = createContext<InboxCardContext | null>(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useInboxCardContext = () => {
     const context = useContext(InboxCardContext);
     if (!context) {

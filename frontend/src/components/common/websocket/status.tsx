@@ -14,7 +14,11 @@ import { type QueryClient } from '@tanstack/react-query';
 import { queryClient } from '@/api/common';
 import { invalidateSession, statusQueryOptions } from '@/api/session';
 import { StatusSocket } from '@/api/websocket';
-import { FileSystemUpdate, FolderStatus, FolderStatusUpdate } from '@/pythonTypes';
+import {
+    FileSystemUpdate,
+    FolderStatus,
+    FolderStatusUpdate,
+} from '@/pythonTypes';
 
 import useSocket from './useSocket';
 interface StatusContextI {
@@ -107,6 +111,7 @@ export function StatusContextProvider({
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useStatusSocket = () => {
     const context = useContext(StatusContext);
     if (!context) {
