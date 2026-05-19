@@ -45,7 +45,7 @@ const router = createRouter({
             </Box>
         </Box>
     ),
-    defaultPendingMinMs: 1000,
+    defaultPendingMinMs: 0,
 
     defaultPreload: 'intent',
     // Since we're using React Query, we don't want loader calls to ever be stale
