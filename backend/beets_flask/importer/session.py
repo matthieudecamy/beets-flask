@@ -274,7 +274,7 @@ class BaseSession(importer.ImportSession, ABC):
         default = get_config()
         for p in path:
             default = default[p]
-        default = default.get(type_func) if type_func else default.get()
+        default = default.get(type_func) if type_func else default.get()  # type: ignore[call-overload]
         return default
 
     # -------------------------- State handling helpers -------------------------- #
