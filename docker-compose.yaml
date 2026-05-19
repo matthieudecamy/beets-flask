@@ -1,6 +1,6 @@
 services:
     beets-flask:
-        image: ghcr.io/matthieudecamy/beets-flask:latest
+        image: shlagi-tagger:latest
         container_name: shlagi-tagger
         restart: unless-stopped
         ports:
