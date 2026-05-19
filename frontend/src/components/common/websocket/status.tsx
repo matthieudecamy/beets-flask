@@ -14,7 +14,11 @@ import { type QueryClient } from '@tanstack/react-query';
 import { queryClient } from '@/api/common';
 import { invalidateSession, statusQueryOptions } from '@/api/session';
 import { StatusSocket } from '@/api/websocket';
-import { FileSystemUpdate, FolderStatusUpdate } from '@/pythonTypes';
+import {
+    FileSystemUpdate,
+    FolderStatus,
+    FolderStatusUpdate,
+} from '@/pythonTypes';
 
 import useSocket from './useSocket';
 interface StatusContextI {
@@ -68,6 +72,20 @@ export function StatusContextProvider({
             invalidateSession(updateData.hash, updateData.path, false).catch(
                 console.error
             );
+
+            if (
+                updateData.status === FolderStatus.PREVIEWED ||
+                updateData.status === FolderStatus.IMPORTED
+            ) {
+                queryClient
+                    .invalidateQueries({ queryKey: ['inbox', 'stats'] })
+                    .catch(console.error);
+            }
+            if (updateData.status === FolderStatus.IMPORTED) {
+                queryClient
+                    .invalidateQueries({ queryKey: ['libraryStats'] })
+                    .catch(console.error);
+            }
         }
 
         async function handleFileSystemUpdate(updateData: FileSystemUpdate) {

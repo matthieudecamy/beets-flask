@@ -39,6 +39,7 @@ export const libraryStatsQueryOptions = () => {
                     : undefined,
             } as LibraryStats;
         },
+        staleTime: Infinity,
     });
 };
 

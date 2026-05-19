@@ -76,6 +76,7 @@ export const inboxStatsQueryOptions = () => ({
         });
         return dat;
     },
+    staleTime: Infinity,
 });
 
 /* -------------------------------- Mutations ------------------------------- */
