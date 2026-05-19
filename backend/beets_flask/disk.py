@@ -526,7 +526,7 @@ async def compute_and_store_dir_stats(path: Path) -> CachedStatInDb:
     with db_session_factory() as session:
         session.merge(stat)
 
-    log.debug(f"compute_and_store_dir_stats: {resolved} size={size} n_files={n_files}")
+    log.info(f"Stats updated for {resolved}: {n_files} files, {size} bytes")
     return stat
 
 

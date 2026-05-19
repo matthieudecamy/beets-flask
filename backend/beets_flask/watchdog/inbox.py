@@ -100,8 +100,13 @@ def register_inboxes(timeout: float = 2.5, debounce: float = 30) -> AIOWatchdog 
             asyncio.create_task(auto_tag_wait_for_workers(f))
 
     # Pre-compute stats for all inboxes so the home page is fast on first load.
-    for inbox in _inboxes:
-        asyncio.create_task(compute_and_store_dir_stats(Path(inbox["path"])))
+    async def _compute_startup_stats():
+        await asyncio.gather(
+            *[compute_and_store_dir_stats(Path(inbox["path"])) for inbox in _inboxes]
+        )
+        log.info("Watchdog startup complete: inbox stats pre-computed for all inboxes")
+
+    asyncio.create_task(_compute_startup_stats())
 
     return watchdog
 
