@@ -18,12 +18,12 @@ from sqlalchemy.orm import Session
 
 from beets_flask.config import get_config
 from beets_flask.database import db_session_factory
-from beets_flask.disk import compute_and_store_dir_stats
 from beets_flask.database.models.states import (
     FolderInDb,
     SessionState,
     SessionStateInDb,
 )
+from beets_flask.disk import compute_and_store_dir_stats
 from beets_flask.importer.progress import FolderStatus
 from beets_flask.importer.session import (
     AddCandidatesSession,
