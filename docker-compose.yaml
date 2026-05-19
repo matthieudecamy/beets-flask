@@ -10,7 +10,7 @@ services:
             USER_ID: 1026
             GROUP_ID: 100
         volumes:
-            - /volume1/docker/Music/beets-flask/config:/config
+            - /volumeUSB1/usbshare/beets-flask/config:/config
             # for music folders, paths match inside and out of container!
             - /volume1/docker/Music/MusicToTag:/volume1/docker/Music/MusicToTag
             - /volume1/docker/Music/Music:/volume1/docker/Music/Music
