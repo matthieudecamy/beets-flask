@@ -6,7 +6,6 @@ import Tab, { tabClasses, TabProps } from '@mui/material/Tab';
 import Tabs, { tabsClasses } from '@mui/material/Tabs';
 import { createLink, LinkProps, useRouterState } from '@tanstack/react-router';
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const NAVBAR_HEIGHT = {
     desktop: '48px',
     mobile: '74px',

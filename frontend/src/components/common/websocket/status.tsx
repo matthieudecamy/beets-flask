@@ -111,7 +111,6 @@ export function StatusContextProvider({
     );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useStatusSocket = () => {
     const context = useContext(StatusContext);
     if (!context) {
