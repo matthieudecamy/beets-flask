@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict, cast
 
@@ -45,6 +46,14 @@ async def stats():
 
     lib_path = cast(str, config["directory"].get(str))
 
+    cached = get_cached_dir_stats(Path(lib_path))
+    if cached is not None and cached.size_bytes is not None:
+        size = cached.size_bytes
+    else:
+        # Fallback: no DB row yet. Run the (potentially slow) subprocess
+        # off the event loop so other concurrent requests aren't blocked.
+        size = await asyncio.to_thread(dir_size, Path(lib_path))
+
     ret: LibraryStats = {
         "libraryPath": str(config["directory"].as_str()),
         "items": items_stats[0][0],
@@ -52,12 +61,7 @@ async def stats():
         "artists": album_stats[0][3],
         "genres": album_stats[0][1],
         "labels": album_stats[0][2],
-        "size": (
-            cached.size_bytes
-            if (cached := get_cached_dir_stats(Path(lib_path))) is not None
-            and cached.size_bytes is not None
-            else dir_size(Path(lib_path))
-        ),
+        "size": size,
         "lastItemAdded": (
             round(items_stats[0][1] * 1000) if items_stats[0][1] is not None else None
         ),

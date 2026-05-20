@@ -26,7 +26,7 @@ from beets.importer.tasks import (
     albums_in_dir,
 )
 from beets.util import bytestring_path
-from cachetools import Cache, TTLCache, cached
+from cachetools import Cache, LRUCache, TTLCache, cached
 from natsort import os_sorted
 
 from beets_flask.config import get_config
@@ -465,22 +465,27 @@ def _dir_files_subprocess(path: Path) -> int:
         return -1
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60), info=True)
+@cached(cache=LRUCache(maxsize=1024), info=True)
 def dir_size(path: Path) -> int:
     """Size of a dir in bytes, including content.
 
-    Cached for 60 s. Prefer :func:`get_cached_dir_stats` for hot paths —
-    it reads a pre-computed value from the database instead of running a
-    subprocess on every cache miss.
+    Cached for the lifetime of the process. Prefer
+    :func:`get_cached_dir_stats` for hot paths — it reads a pre-computed
+    value from the database (kept fresh by the watchdog + import workers)
+    instead of running a subprocess on every cache miss. This in-process
+    cache only serves as a fallback for the rare case where the DB has
+    no row yet; once it's populated by :func:`compute_and_store_dir_stats`
+    the DB value wins and this cache is never consulted.
     """
     return _dir_size_subprocess(path)
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60), info=True)
+@cached(cache=LRUCache(maxsize=1024), info=True)
 def dir_files(path: Path) -> int:
     """Count the number of files in a directory.
 
-    Cached for 60 s. Prefer :func:`get_cached_dir_stats` for hot paths.
+    Cached for the lifetime of the process. Prefer
+    :func:`get_cached_dir_stats` for hot paths — see :func:`dir_size`.
     """
     return _dir_files_subprocess(path)
 
@@ -490,7 +495,7 @@ def clear_cache():
 
     Only clears :func:`path_to_folder` so that the inbox tree view stays
     current after filesystem changes.  The ``dir_size`` / ``dir_files``
-    TTL caches are left alone — those are now fallbacks only; the
+    caches are left alone — those are now fallbacks only; the
     authoritative values live in the ``cached_stats`` DB table and are
     updated by :func:`compute_and_store_dir_stats`.
     """

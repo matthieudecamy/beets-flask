@@ -1,3 +1,4 @@
+import asyncio
 import os
 import shutil
 from datetime import datetime
@@ -235,11 +236,11 @@ async def stats_for_all():
         The folder to compute stats for. If not provided, all inbox folders are used.
     """
     folders = get_inbox_folders()
-    stats = [compute_stats(f) for f in folders]
+    stats = await asyncio.gather(*[compute_stats(f) for f in folders])
     return jsonify(stats)
 
 
-def compute_stats(folder: str):
+async def compute_stats(folder: str):
     """Compute the stats for the inbox folder.
 
     # Path parameters
@@ -283,16 +284,16 @@ def compute_stats(folder: str):
         last_created = session.execute(stmt).scalars().first()
 
     cached = get_cached_dir_stats(p)
-    n_files = (
-        cached.n_files
-        if cached is not None and cached.n_files is not None
-        else dir_files(p)
-    )
-    size = (
-        cached.size_bytes
-        if cached is not None and cached.size_bytes is not None
-        else dir_size(p)
-    )
+    if cached is not None and cached.n_files is not None:
+        n_files = cached.n_files
+    else:
+        # Fallback: no DB row yet. Run the (potentially slow) subprocess
+        # off the event loop so other concurrent requests aren't blocked.
+        n_files = await asyncio.to_thread(dir_files, p)
+    if cached is not None and cached.size_bytes is not None:
+        size = cached.size_bytes
+    else:
+        size = await asyncio.to_thread(dir_size, p)
 
     ret_map: InboxStats = {
         "name": inbox["name"],

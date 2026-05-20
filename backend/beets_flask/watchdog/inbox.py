@@ -99,12 +99,26 @@ def register_inboxes(timeout: float = 2.5, debounce: float = 30) -> AIOWatchdog 
                 continue
             asyncio.create_task(auto_tag_wait_for_workers(f))
 
-    # Pre-compute stats for all inboxes so the home page is fast on first load.
+    # Pre-compute stats for all inboxes AND the beets library so the home
+    # page is fast on first load. Without this, the very first visit to the
+    # home page triggers a synchronous `du -sb` on the library — which can
+    # take tens of seconds on a slow HDD and blocks the Quart event loop.
     async def _compute_startup_stats():
+        paths_to_warm: list[Path] = [Path(inbox["path"]) for inbox in _inboxes]
+        try:
+            lib_path = Path(get_config()["directory"].get(str))
+            paths_to_warm.append(lib_path)
+        except Exception as e:
+            log.warning(f"Could not resolve beets library path for stats pre-compute: {e}")
+
         await asyncio.gather(
-            *[compute_and_store_dir_stats(Path(inbox["path"])) for inbox in _inboxes]
+            *[compute_and_store_dir_stats(p) for p in paths_to_warm],
+            return_exceptions=True,
         )
-        log.info("Watchdog startup complete: inbox stats pre-computed for all inboxes")
+        log.info(
+            "Watchdog startup complete: dir stats pre-computed for "
+            f"{len(paths_to_warm)} path(s) (inboxes + library)"
+        )
 
     asyncio.create_task(_compute_startup_stats())
 
